@@ -23,13 +23,14 @@ func NewPool(maxSize int, addr string) *Pool {
 
 func (p *Pool) GetConnection() (net.Conn, error) {
 	p.lock.Lock()
-	defer p.lock.Unlock()
 	if p.connections.Len() > 0 {
 		e := p.connections.Front()
 		p.connections.Remove(e)
+		p.lock.Unlock()
 		connFromPool := e.Value.(net.Conn)
 		_, err := connFromPool.Write(nil)
 		if err != nil {
+			connFromPool.Close()
 			conn, err := net.Dial("tcp", p.addr)
 			if err != nil {
 				return nil, err
@@ -38,7 +39,7 @@ func (p *Pool) GetConnection() (net.Conn, error) {
 		}
 		return e.Value.(net.Conn), nil
 	}
-
+	p.lock.Unlock()
 	conn, err := net.Dial("tcp", p.addr)
 	if err != nil {
 		return nil, err
@@ -49,10 +50,11 @@ func (p *Pool) GetConnection() (net.Conn, error) {
 
 func (p *Pool) ReleaseConnection(conn net.Conn) {
 	p.lock.Lock()
-	defer p.lock.Unlock()
 	if p.connections.Len() < p.maxSize {
 		p.connections.PushBack(conn)
+		p.lock.Unlock()
 	} else {
+		p.lock.Unlock()
 		err := conn.Close()
 		if err != nil {
 			return

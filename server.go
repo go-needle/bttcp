@@ -71,6 +71,7 @@ func (s *Server) Run(port int) {
 	}(listen)
 	for {
 		conn, err := listen.Accept()
+		log.Printf("a new connection links from %s -> %s", conn.RemoteAddr().String(), conn.LocalAddr().String())
 		if err != nil {
 			log.Println("accept failed, err: ", err)
 			continue

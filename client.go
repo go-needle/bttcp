@@ -3,6 +3,7 @@ package bttcp
 import (
 	"bufio"
 	"github.com/go-needle/bttcp/proto"
+	"net"
 	"sync"
 )
 
@@ -14,6 +15,14 @@ type Client struct {
 }
 
 func NewClient(address string, poolSize int) *Client {
+	conn, err := net.Dial("tcp", address)
+	if err != nil {
+		panic(err)
+	}
+	err = conn.Close()
+	if err != nil {
+		panic(err)
+	}
 	return &Client{address: address, poolSize: poolSize}
 }
 
@@ -22,7 +31,11 @@ func (c *Client) Send(b []byte) ([]byte, error) {
 		c.pool = NewPool(c.poolSize, c.address)
 	})
 	conn, err := c.pool.GetConnection()
-	defer c.pool.ReleaseConnection(conn)
+	defer func() {
+		if conn != nil {
+			c.pool.ReleaseConnection(conn)
+		}
+	}()
 	if err != nil {
 		return nil, err
 	}
