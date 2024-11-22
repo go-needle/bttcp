@@ -15,9 +15,10 @@ func TestClient(t *testing.T) {
 	s := NewClient("127.0.0.1:9999", 100)
 	for i := 0; i < 10000; i++ {
 		wg.Add(1)
+		num := i
 		go func() {
 			time.Sleep(time.Duration(rand.Intn(100)) * time.Second)
-			resp, err := s.Send([]byte("hello" + strconv.Itoa(i)))
+			resp, err := s.Send([]byte("hello" + strconv.Itoa(num)))
 			if err != nil {
 				return
 			}
