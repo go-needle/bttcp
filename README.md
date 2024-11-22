@@ -12,7 +12,7 @@ Binary Interaction Protocol Based on TCP
 </div>
 
 ## introduction
-Bttcp is a binary transmission protocol based on TCP, where the response header only records the length of the binary stream and data exchange is limited to byte exchange. bttcp is designed to improve transmission performance.
+bttcp is a binary transmission protocol based on TCP, where the response header only records the length of the binary stream and data exchange is limited to byte exchange. bttcp is designed to improve transmission performance.
 
 ## installing
 Select the version to install
