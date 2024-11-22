@@ -33,8 +33,8 @@ package main
 import "github.com/go-needle/bttcp"
 
 func main() {
-	s := bttcp.NewServer(bttcp.HandlerFunc(func(b []byte) ([]byte, error) {
-		return b, nil
+	s := bttcp.NewServer(bttcp.HandlerFunc(func(b []byte) []byte{
+		return b
 	}))
 	s.Run(9999)
 }

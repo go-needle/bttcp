@@ -13,13 +13,13 @@ import (
 
 // Handler defines the request handler
 type Handler interface {
-	Handle(b []byte) ([]byte, error)
+	Handle(b []byte) []byte
 }
 
 // HandlerFunc realizes the Handler
-type HandlerFunc func(b []byte) ([]byte, error)
+type HandlerFunc func(b []byte) []byte
 
-func (f HandlerFunc) Handle(b []byte) ([]byte, error) {
+func (f HandlerFunc) Handle(b []byte) []byte {
 	return f(b)
 }
 
@@ -96,11 +96,7 @@ func (s *Server) process(conn net.Conn) {
 			log.Println("decode msg failed, err: ", err)
 			return
 		}
-		wb, err := s.handler.Handle(b)
-		if err != nil {
-			log.Println("handle failed, err: ", err)
-			return
-		}
+		wb := s.handler.Handle(b)
 		data, err := proto.Encode(wb)
 		if err != nil {
 			log.Println("encode msg failed, err: ", err)
