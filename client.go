@@ -2,6 +2,8 @@ package bttcp
 
 import (
 	"bufio"
+	"errors"
+	"fmt"
 	"github.com/go-needle/bttcp/proto"
 	"net"
 	"sync"
@@ -17,11 +19,15 @@ type Client struct {
 func NewClient(address string, poolSize int) *Client {
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
-		panic(err)
+		panic(errors.New(fmt.Sprintf("dial bttcp %s: connect: connection refused", address)))
+	}
+	_, err = conn.Write(nil)
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("dial bttcp %s: connect: connection refused", address)))
 	}
 	err = conn.Close()
 	if err != nil {
-		panic(err)
+		panic(errors.New(fmt.Sprintf("dial bttcp %s: connect: connection refused", address)))
 	}
 	return &Client{address: address, poolSize: poolSize}
 }

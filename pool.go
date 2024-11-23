@@ -1,33 +1,45 @@
 package bttcp
 
 import (
-	"container/list"
 	"net"
 	"sync"
 )
 
+type node struct {
+	val  net.Conn
+	prev *node
+	next *node
+}
+
 type Pool struct {
-	maxSize     int
-	connections *list.List
-	addr        string
-	lock        sync.Mutex
+	maxSize int
+	curSize int
+	head    *node
+	tail    *node
+	addr    string
+	lock    sync.Mutex
 }
 
 func NewPool(maxSize int, addr string) *Pool {
+	headDummy := new(node)
+	tailDummy := new(node)
+	headDummy.next = tailDummy
+	tailDummy.prev = headDummy
 	return &Pool{
-		maxSize:     maxSize,
-		connections: list.New(),
-		addr:        addr,
+		maxSize: maxSize,
+		head:    headDummy,
+		tail:    tailDummy,
+		addr:    addr,
 	}
 }
 
 func (p *Pool) GetConnection() (net.Conn, error) {
 	p.lock.Lock()
-	if p.connections.Len() > 0 {
-		e := p.connections.Front()
-		p.connections.Remove(e)
+	if p.curSize > 0 {
+		e := p.tail.next
+		p.tail.next = e.next
 		p.lock.Unlock()
-		connFromPool := e.Value.(net.Conn)
+		connFromPool := e.val
 		_, err := connFromPool.Write(nil)
 		if err != nil {
 			connFromPool.Close()
@@ -37,7 +49,7 @@ func (p *Pool) GetConnection() (net.Conn, error) {
 			}
 			return conn, nil
 		}
-		return e.Value.(net.Conn), nil
+		return e.val, nil
 	}
 	p.lock.Unlock()
 	conn, err := net.Dial("tcp", p.addr)
@@ -50,8 +62,10 @@ func (p *Pool) GetConnection() (net.Conn, error) {
 
 func (p *Pool) ReleaseConnection(conn net.Conn) {
 	p.lock.Lock()
-	if p.connections.Len() < p.maxSize {
-		p.connections.PushBack(conn)
+	if p.curSize < p.maxSize {
+		e := &node{val: conn}
+		p.tail.prev.next = e
+		p.tail.prev = e
 		p.lock.Unlock()
 	} else {
 		p.lock.Unlock()

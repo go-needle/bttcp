@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -24,7 +25,8 @@ func (f HandlerFunc) Handle(b []byte) []byte {
 }
 
 type Server struct {
-	handler Handler
+	handler   Handler
+	whiteList map[string]struct{}
 }
 
 func NewServer(handler Handler) *Server {
@@ -56,6 +58,7 @@ func welcome() {
 	}
 }
 
+// Run will listen to TCP ports and block
 func (s *Server) Run(port int) {
 	welcome()
 	listen, err := net.Listen("tcp", "0.0.0.0:"+strconv.Itoa(port))
@@ -71,16 +74,44 @@ func (s *Server) Run(port int) {
 	}(listen)
 	for {
 		conn, err := listen.Accept()
-		log.Printf("a new connection links from %s -> %s", conn.RemoteAddr().String(), conn.LocalAddr().String())
 		if err != nil {
 			log.Println("accept failed, err: ", err)
 			continue
 		}
+		if s.whiteList != nil {
+			sp := strings.Split(conn.RemoteAddr().String(), ":")
+			if len(sp) > 1 {
+				ip := sp[0]
+				if _, has := s.whiteList[ip]; !has {
+					err := conn.Close()
+					if err != nil {
+						continue
+					}
+					continue
+				}
+			}
+		}
+		log.Printf("a new bttcp connection links from %s -> %s", conn.RemoteAddr().String(), conn.LocalAddr().String())
 		go s.process(conn)
 	}
 }
 
+// SetWhiteList is to set an IP whitelist. Setting an IP whitelist can reject IP connections that are not on the whitelist. If it is not set, it will not be enabled
+func (s *Server) SetWhiteList(remoteIPs ...string) {
+	if s.whiteList == nil {
+		s.whiteList = make(map[string]struct{})
+	}
+	for _, rd := range remoteIPs {
+		s.whiteList[rd] = struct{}{}
+	}
+}
+
 func (s *Server) process(conn net.Conn) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("recover panic : ", err)
+		}
+	}()
 	defer func(conn net.Conn) {
 		err := conn.Close()
 		if err != nil {
