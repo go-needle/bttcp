@@ -16,18 +16,20 @@ type Client struct {
 	once     sync.Once
 }
 
-func NewClient(address string, poolSize int) *Client {
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		panic(errors.New(fmt.Sprintf("dial bttcp %s: connect: connection refused", address)))
-	}
-	_, err = conn.Write(nil)
-	if err != nil {
-		panic(errors.New(fmt.Sprintf("dial bttcp %s: connect: connection refused", address)))
-	}
-	err = conn.Close()
-	if err != nil {
-		panic(errors.New(fmt.Sprintf("dial bttcp %s: connect: connection refused", address)))
+func NewClient(address string, poolSize int, isTestConn bool) *Client {
+	if isTestConn {
+		conn, err := net.Dial("tcp", address)
+		if err != nil {
+			panic(errors.New(fmt.Sprintf("dial bttcp %s: connect: connection refused", address)))
+		}
+		_, err = conn.Write(nil)
+		if err != nil {
+			panic(errors.New(fmt.Sprintf("dial bttcp %s: connect: connection refused", address)))
+		}
+		err = conn.Close()
+		if err != nil {
+			panic(errors.New(fmt.Sprintf("dial bttcp %s: connect: connection refused", address)))
+		}
 	}
 	return &Client{address: address, poolSize: poolSize}
 }
