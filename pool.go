@@ -81,3 +81,19 @@ func (p *Pool) ReleaseConnection(conn net.Conn) {
 		}
 	}
 }
+
+func (p *Pool) ClearPool() {
+	cur := p.head
+	for cur != p.tail {
+		conn := cur.val
+		if conn != nil {
+			err := conn.Close()
+			if err != nil {
+				continue
+			}
+		}
+		cur = cur.next
+	}
+	p.head.next = p.tail
+	p.tail.prev = p.head
+}

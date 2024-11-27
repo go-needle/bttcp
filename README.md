@@ -55,13 +55,13 @@ import (
 var wg sync.WaitGroup
 
 func main() {
-	s := bttcp.NewClient("127.0.0.1:9999", 100, true)
+	c := bttcp.NewClient("127.0.0.1:9999", 100, true)
 	for i := 0; i < 10000; i++ {
 		wg.Add(1)
 		num := i
 		go func() {
 			time.Sleep(time.Duration(rand.Intn(100)) * time.Second)
-			resp, err := s.Send([]byte("hello" + strconv.Itoa(num)))
+			resp, err := c.Send([]byte("hello" + strconv.Itoa(num)))
 			if err != nil {
 				return
 			}
@@ -70,5 +70,6 @@ func main() {
 		}()
 	}
 	wg.Wait()
+	c.Close()
 }
 ```

@@ -58,3 +58,7 @@ func (c *Client) Send(b []byte) ([]byte, error) {
 	}
 	return rb, nil
 }
+
+func (c *Client) Close() {
+	c.pool.ClearPool()
+}
