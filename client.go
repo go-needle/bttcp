@@ -39,11 +39,7 @@ func (c *Client) Send(b []byte) ([]byte, error) {
 		c.pool = NewPool(c.poolSize, c.address)
 	})
 	conn, err := c.pool.GetConnection()
-	defer func() {
-		if conn != nil {
-			c.pool.ReleaseConnection(conn)
-		}
-	}()
+	defer c.pool.ReleaseConnection(conn)
 	if err != nil {
 		return nil, err
 	}
