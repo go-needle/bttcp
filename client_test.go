@@ -12,7 +12,7 @@ import (
 var wg sync.WaitGroup
 
 func TestClient(t *testing.T) {
-	s := NewClient("127.0.0.1:9999", 2048)
+	s := NewClient("127.0.0.1:9999", 2048, true)
 	for i := 0; i < 1000000; i++ {
 		wg.Add(1)
 		num := i

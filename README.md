@@ -55,7 +55,7 @@ import (
 var wg sync.WaitGroup
 
 func main() {
-	s := bttcp.NewClient("127.0.0.1:9999", 100)
+	s := bttcp.NewClient("127.0.0.1:9999", 100, true)
 	for i := 0; i < 10000; i++ {
 		wg.Add(1)
 		num := i
