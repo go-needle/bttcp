@@ -65,7 +65,7 @@ func (s *Server) Run(port int) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("🪡 The http server is listening at port " + strconv.Itoa(port))
+	fmt.Println("🪡 The bttcp server is listening at port " + strconv.Itoa(port))
 	defer func(listen net.Listener) {
 		err = listen.Close()
 		if err != nil {
